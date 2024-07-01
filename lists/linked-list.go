@@ -13,33 +13,57 @@ type linkedList[T any] struct {
 	head *node[T]
 }
 
-// Initialize a linked list with an array
+// Initializes a linked list using the elements in the passed array
 func LinkedList[T any](a []T) *linkedList[T] {
 	l := &linkedList[T]{}
 	for i := 0; i < len(a); i++ {
-		l.Add(a[i])
+		l.Push(a[i])
 	}
 
 	return l
 }
 
-func (l *linkedList[T]) Add(e T) {
+func (l *linkedList[T]) Add(ind uint, e T) (err error) {
+	if ind > l.Size() {
+		err = ListIndexOutOfBoundsError{ind, "Add"}
+		return
+	}
 	new := &node[T]{nil, e}
 
-	if l.head == nil {
+	iter := l.head
+	i := uint(0)
+	for ; i != ind; i++ {
+		iter = iter.next
+	}
+
+	if i == 0 && l.Size() == 0 {
 		l.head = new
 		return
 	}
 
-	iter := l.head
-	for iter.next != nil {
-		iter = iter.next
+	if i == 0 {
+		el, er := l.GetNode(0)
+		if er != nil {
+			err = er
+			return
+		}
+
+		l.head = new
+		l.head.next = el
+		return
 	}
 
-	iter.next = new
+	el, er := l.GetNode(i - 1)
+	if er != nil {
+		err = er
+		return
+	}
+
+	el.next = new
+	new.next = iter
+	return
 }
 
-// Deletes the element at the passed index
 func (l *linkedList[T]) Delete(ind uint) (err error) {
 	var el, prev *node[T]
 	for i := range l.Size() {
@@ -65,13 +89,32 @@ func (l *linkedList[T]) Delete(ind uint) (err error) {
 		}
 	}
 
-	err = ElementNotFoundError(ind)
+	err = ElementNotFoundError{ind, "Delete"}
+	return
+}
+
+func (l *linkedList[T]) Push(e T) (s uint) {
+	new := &node[T]{nil, e}
+
+	if l.head == nil {
+		l.head = new
+		s = l.Size()
+		return
+	}
+
+	iter := l.head
+	for iter.next != nil {
+		iter = iter.next
+	}
+
+	iter.next = new
+	s = l.Size()
 	return
 }
 
 func (l *linkedList[T]) Get(ind uint) (e T, err error) {
 	if ind >= l.Size() {
-		err = ListIndexOutOfBoundsError(ind)
+		err = ListIndexOutOfBoundsError{ind, "Get"}
 		return
 	}
 
@@ -92,12 +135,12 @@ func (l *linkedList[T]) Get(ind uint) (e T, err error) {
 
 func (l *linkedList[T]) GetNode(ind uint) (e *node[T], err error) {
 	if ind >= l.Size() {
-		err = ListIndexOutOfBoundsError(ind)
+		err = ListIndexOutOfBoundsError{ind, "GetNode"}
 		return
 	}
 
 	iter := l.head
-	for i := uint(0); ; i, iter = i+1, iter.next {
+	for i := uint(0); ; i++ {
 		if i == ind {
 			e = iter
 			break
@@ -106,6 +149,8 @@ func (l *linkedList[T]) GetNode(ind uint) (e *node[T], err error) {
 		if iter.next == nil {
 			break
 		}
+
+		iter = iter.next
 	}
 
 	return
@@ -126,11 +171,11 @@ func (l *linkedList[T]) Size() (i uint) {
 }
 
 func (e ListIndexOutOfBoundsError) Error() string {
-	return fmt.Sprintf("index %v is invalid: index is out of bounds", uint(e))
+	return fmt.Sprintf("index %v is invalid: index is out of bounds (%v)", e.ind, e.from)
 }
 
 func (e ElementNotFoundError) Error() string {
-	return fmt.Sprintf("could not delete element at index %v: element not found", uint(e))
+	return fmt.Sprintf("could not delete element at index %v: element not found (%v)", e.ind, e.from)
 }
 
 func (l linkedList[T]) String() (s string) {
