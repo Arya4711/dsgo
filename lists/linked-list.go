@@ -4,17 +4,17 @@ import (
 	"fmt"
 )
 
-type node[T any] struct {
+type node[T comparable] struct {
 	next *node[T]
 	val  T
 }
 
-type linkedList[T any] struct {
+type linkedList[T comparable] struct {
 	head *node[T]
 }
 
 // Initializes a linked list using the elements in the passed array
-func LinkedList[T any](a []T) *linkedList[T] {
+func LinkedList[T comparable](a []T) *linkedList[T] {
 	l := &linkedList[T]{}
 	for i := 0; i < len(a); i++ {
 		l.Push(a[i])
@@ -65,6 +65,11 @@ func (l *linkedList[T]) Add(ind uint, e T) (err error) {
 }
 
 func (l *linkedList[T]) Delete(ind uint) (err error) {
+	if ind >= l.Size() {
+		err = ListIndexOutOfBoundsError{ind, "Delete"}
+		return
+	}
+
 	var el, prev *node[T]
 	for i := range l.Size() {
 		el, err = l.GetNode(i)
@@ -89,7 +94,6 @@ func (l *linkedList[T]) Delete(ind uint) (err error) {
 		}
 	}
 
-	err = ElementNotFoundError{ind, "Delete"}
 	return
 }
 
@@ -156,6 +160,24 @@ func (l *linkedList[T]) Get(ind uint) (e T, err error) {
 	return
 }
 
+func (l *linkedList[T]) IndexOf(e T) (ind uint, err error) {
+	for i := range l.Size() {
+		el, er := l.Get(i)
+		if er != nil {
+			err = er
+			return
+		}
+
+		if el == e {
+			ind = i
+			return
+		}
+	}
+
+	err = ElementNotFoundError[T]{e, "IndexOf"}
+	return
+}
+
 func (l *linkedList[T]) GetNode(ind uint) (e *node[T], err error) {
 	if ind >= l.Size() {
 		err = ListIndexOutOfBoundsError{ind, "GetNode"}
@@ -197,8 +219,8 @@ func (e ListIndexOutOfBoundsError) Error() string {
 	return fmt.Sprintf("index %v is invalid: index is out of bounds (%v)", e.ind, e.from)
 }
 
-func (e ElementNotFoundError) Error() string {
-	return fmt.Sprintf("could not delete element at index %v: element not found (%v)", e.ind, e.from)
+func (e ElementNotFoundError[T]) Error() string {
+	return fmt.Sprintf("could not find element %v (%v)", e.el, e.from)
 }
 
 func (e ListSizeTooSmallError) Error() string {

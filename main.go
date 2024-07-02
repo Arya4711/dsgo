@@ -8,10 +8,10 @@ import (
 func main() {
 	var list lists.List[int]
 	list = lists.LinkedList([]int{10, 20, 30, 40})
-	size, err := list.Pop()
+	ind, err := list.IndexOf(30)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(list, size)
+	fmt.Println(ind)
 }

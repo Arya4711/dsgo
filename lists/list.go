@@ -5,14 +5,14 @@ type ListIndexOutOfBoundsError struct {
 	from string
 }
 
-type ElementNotFoundError struct {
-	ind  uint
+type ElementNotFoundError[T comparable] struct {
+	el   T
 	from string
 }
 
 type ListSizeTooSmallError string
 
-type List[T any] interface {
+type List[T comparable] interface {
 
 	/*
 		Adds the passed element at the passed index
@@ -33,7 +33,8 @@ type List[T any] interface {
 	// Returns the value of the element at the passed index
 	Get(uint) (T, error)
 
-	// IndexOf(T) uint
+	// Returns the index of the passed element
+	IndexOf(T) (uint, error)
 
 	// Returns the size of the list
 	Size() uint
