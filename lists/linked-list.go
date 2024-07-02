@@ -112,6 +112,29 @@ func (l *linkedList[T]) Push(e T) (s uint) {
 	return
 }
 
+func (l *linkedList[T]) Pop() (s uint, err error) {
+	if l.Size() == 0 {
+		err = ListSizeTooSmallError("Pop")
+		return
+	}
+
+	if l.Size() == 1 {
+		l.head = nil
+		s = 0
+		return
+	}
+
+	el, er := l.GetNode(l.Size() - 2)
+	if er != nil {
+		err = er
+		return
+	}
+
+	el.next = nil
+	s = l.Size()
+	return
+}
+
 func (l *linkedList[T]) Get(ind uint) (e T, err error) {
 	if ind >= l.Size() {
 		err = ListIndexOutOfBoundsError{ind, "Get"}
@@ -145,8 +168,8 @@ func (l *linkedList[T]) GetNode(ind uint) (e *node[T], err error) {
 			e = iter
 			break
 		}
-
 		if iter.next == nil {
+
 			break
 		}
 
@@ -176,6 +199,10 @@ func (e ListIndexOutOfBoundsError) Error() string {
 
 func (e ElementNotFoundError) Error() string {
 	return fmt.Sprintf("could not delete element at index %v: element not found (%v)", e.ind, e.from)
+}
+
+func (e ListSizeTooSmallError) Error() string {
+	return fmt.Sprintf("could not delete element at last index: list size too small (%v)", string(e))
 }
 
 func (l linkedList[T]) String() (s string) {

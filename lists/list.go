@@ -10,6 +10,8 @@ type ElementNotFoundError struct {
 	from string
 }
 
+type ListSizeTooSmallError string
+
 type List[T any] interface {
 
 	/*
@@ -25,7 +27,8 @@ type List[T any] interface {
 	// Adds the passed element to the end of the list and returns the new size of the list
 	Push(T) uint
 
-	// Pop(T)
+	// Deletes the last element of the list and returns the new size of the list
+	Pop() (uint, error)
 
 	// Returns the value of the element at the passed index
 	Get(uint) (T, error)
